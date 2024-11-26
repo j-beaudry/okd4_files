@@ -1,15 +1,27 @@
-echo "Setting cluster domain name to: $1.$2"
+#!/bin/bash
+source .env
 
-# Replace dns references in named config
-sudo sed -i 's/okd.home.lab/'$1.$2'/' db.192.168.1
-sudo sed -i 's/home.lab/'$2'/' db.192.168.1
-sudo sed -i 's/home.lab/'$2'/' db.192.168.1
-sudo sed -i 's/okd.home.lab/'$1.$2'/' db.home.lab
-sudo sed -i 's/home.lab/'$2'/' db.home.lab
-sudo sed -i 's/home.lab/'$2'/' db.192.168.1
-sudo mv db.home.lab db.$2
-sudo sed -i 's/home.lab/'$2'/' named.conf.local
+echo "Setting cluster domain name to: ${DOMAIN_APP}.${DOMAIN_SUBDOMAIN}"
 
-# Replace dns references in install_config.yaml
-sudo sed -i 's/home.lab/'$2'/' install-config.yaml
-sudo sed -i 's/name: okd/name: '$1'/' install-config.yaml
+echo "Replacing dns references in named config"
+sed -i 's/okd.home.lab/'$DOMAIN_APP.$DOMAIN_SUBDOMAIN'/' db.192.168.1
+sed -i 's/home.lab/'$DOMAIN_SUBDOMAIN'/' db.192.168.1
+sed -i 's/home.lab/'$DOMAIN_SUBDOMAIN'/' db.192.168.1
+sed -i 's/okd.home.lab/'$DOMAIN_APP.$DOMAIN_SUBDOMAIN'/' db.home.lab
+sed -i 's/home.lab/'$DOMAIN_SUBDOMAIN'/' db.home.lab
+sed -i 's/home.lab/'$DOMAIN_SUBDOMAIN'/' db.192.168.1
+mv db.home.lab db.$DOMAIN_SUBDOMAIN
+sed -i 's/home.lab/'$DOMAIN_SUBDOMAIN'/' named.conf.local
+
+echo "Replacing dns references in install_config.yaml"
+sed -i 's/home.lab/'$DOMAIN_SUBDOMAIN'/' install-config.yaml
+sed -i 's/name: okd/name: '$DOMAIN_APP'/' install-config.yaml
+
+echo "Replacing IP addresses"
+sed -i -e "s/$VM_OLD_IP_BOOTSTRAP/$VM_NEW_IP_BOOTSTRAP/" ./*
+sed -i -e "s/$VM_OLD_IP_SERVICES/$VM_NEW_IP_SERVICES/" ./*
+sed -i -e "s/$VM_OLD_IP_CONTROLPLANE_1/$VM_NEW_IP_CONTROLPLANE_1/" ./*
+sed -i -e "s/$VM_OLD_IP_CONTROLPLANE_2/$VM_NEW_IP_CONTROLPLANE_2/" ./*
+sed -i -e "s/$VM_OLD_IP_CONTROLPLANE_3/$VM_NEW_IP_CONTROLPLANE_3/" ./*
+sed -i -e "s/$VM_OLD_IP_COMPUTE_1/$VM_NEW_IP_COMPUTE_1/" ./*
+sed -i -e "s/$VM_OLD_IP_COMPUTE_2/$VM_NEW_IP_COMPUTE_2/" ./*
